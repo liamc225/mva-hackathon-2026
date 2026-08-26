@@ -28,17 +28,31 @@ genomic data anywhere.
    python scripts/extract_phenotype.py --docx data/Challenge_Clinical_Phenotype_1.docx
    ```
 
-4. Run the deterministic first-pass ranking. The optional annotation table can
-   be produced by VEP, SnpEff, or another independently documented annotator.
+4. Run the deterministic first-pass ranking. For the challenge VCF, which has
+   no ANN/CSQ fields, use the public GRCh38 MVA panel to bound local review:
 
    ```bash
-   python scripts/rank_variants.py \
+   python scripts/rank_mva_panel.py \
      --vcf data/WGS_EX2312012_HGWCNDSX7.vcf.gz \
-     --out runtime/liam_variant_predictions.csv \
      --max-rows 10
    ```
 
-5. Review the evidence table and validate high-priority calls against the
+5. Download GENCODE v47 into `runtime/` and add coding consequences locally.
+   The script fetches only public reference sequence by gene interval; it does
+   not send the private VCF or candidate alleles to an annotator:
+
+   ```bash
+   curl -L -o runtime/gencode.v47.basic.annotation.gtf.gz \
+     https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_47/gencode.v47.basic.annotation.gtf.gz
+   gzip -dc runtime/gencode.v47.basic.annotation.gtf.gz > runtime/gencode.v47.basic.annotation.gtf
+   python scripts/annotate_coding.py \
+     --vcf data/WGS_EX2312012_HGWCNDSX7.vcf.gz \
+     --gtf runtime/gencode.v47.basic.annotation.gtf \
+     --out runtime/mva_coding_rank.csv \
+     --max-rows 100
+   ```
+
+6. Review the evidence table and validate high-priority calls against the
    original VCF and, when needed, the FASTQ reads. Candidate CSVs and reports
    remain in `runtime/` until the final human review and portal submission.
 
@@ -46,6 +60,10 @@ genomic data anywhere.
 
 - Treat Mosaic Variegated Aneuploidy (MVA) gene knowledge as a prior, not as a
   hard filter; keep novel or incidental findings visible.
+- Use a two-stage workflow: public gene intervals for efficient local
+  retrieval, then local GENCODE CDS translation and public reference sequence
+  for consequence calls. This avoids treating a single-sample `INFO/AF` field
+  as population frequency.
 - Reward rare, high-quality variants with biologically plausible consequences,
   but do not discard low allele-fraction calls solely because they are mosaic.
 - Keep the final ranking auditable: every score is accompanied by its evidence
@@ -54,6 +72,13 @@ genomic data anywhere.
   checks. Never optimize against the hidden clinical answer or repeatedly burn
   the six live submissions.
 - Track 2 claims are hypotheses for follow-up, not treatment recommendations.
+
+The highest-priority hypothesis from the private Colab run is a BUB1B
+compound-allele model: one stop-gain call plus a second high-quality missense
+call in the same gene. The exact candidate CSV is kept out of this repository
+until portal submission because it is patient-derived. The methods report
+labels phase, population frequency, and functional effect as validation items,
+not established facts.
 
 ## Privacy and retention
 
@@ -67,4 +92,3 @@ instructions.
 
 MIT for the public analysis code in this repository. Submission artifacts are
 subject to the hackathon's stated CC BY 4.0 terms.
-

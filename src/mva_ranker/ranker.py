@@ -3,7 +3,9 @@
 The ranker is deliberately transparent. It is a prioritisation aid, not a
 clinical diagnostic model. It works best when the VCF has consequence and
 population-frequency annotations (ANN or CSQ); it still emits quality-aware
-rows when those annotations are absent.
+rows when those annotations are absent. ``INFO/AF`` is intentionally *not*
+treated as population frequency: in many single-sample VCFs it is the sample
+allele frequency and is redundant with ``FORMAT/AD``.
 """
 
 from __future__ import annotations
@@ -14,9 +16,10 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Any, Iterable
 
-from cyvcf2 import VCF
+if TYPE_CHECKING:
+    from cyvcf2 import VCF
 
 
 # Established MVA biology is used as a soft prior only. Keeping this list in
@@ -78,6 +81,10 @@ class Candidate:
     vaf: float | None = None
     gq: float | None = None
     quality: float | None = None
+    mq: float | None = None
+    qd: float | None = None
+    fs: float | None = None
+    sor: float | None = None
     score: float = 0.0
     evidence: list[str] = field(default_factory=list)
 
@@ -278,16 +285,24 @@ def _candidate_from_variant(variant: Any, ann_fields: list[str], csq_fields: lis
         impact=ann.impact,
         transcript=ann.transcript,
         protein_change=ann.protein_change,
-        af=_info_float(variant, ("gnomAD_AF", "GNOMAD_AF", "AF")),
+        # Never use INFO/AF as population frequency. In the challenge VCF it
+        # is a single-sample allele fraction, not a gnomAD-style frequency.
+        af=_info_float(variant, ("gnomAD_AF", "GNOMAD_AF")),
         dp=int(dp) if dp is not None else None,
         vaf=_sample_vaf(variant, dp),
         gq=gq,
         quality=_as_float(variant.QUAL),
+        mq=_info_float(variant, ("MQ",)),
+        qd=_info_float(variant, ("QD",)),
+        fs=_info_float(variant, ("FS",)),
+        sor=_info_float(variant, ("SOR",)),
     )
 
 
 def rank_vcf(vcf_path: str | Path, max_rows: int = 10) -> tuple[str, list[Candidate]]:
     """Return the proband ID and top-ranked candidates from a VCF."""
+
+    from cyvcf2 import VCF
 
     vcf = VCF(str(vcf_path))
     samples = list(vcf.samples)
