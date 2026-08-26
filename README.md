@@ -19,13 +19,15 @@ genomic data anywhere.
 
 2. Download only the VCF, VCF index, and clinical phenotype document from the
    gated dataset. The FASTQs are optional and should be pulled only if read-
-   level validation becomes necessary.
+   level validation becomes necessary. Substitute your local filenames for
+   the placeholders below; the public repository intentionally does not
+   publish the challenge sample identifier.
 
 3. Inspect the VCF and phenotype document:
 
    ```bash
-   python scripts/inspect_dataset.py --vcf data/WGS_EX2312012_HGWCNDSX7.vcf.gz
-   python scripts/extract_phenotype.py --docx data/Challenge_Clinical_Phenotype_1.docx
+   python scripts/inspect_dataset.py --vcf data/your_sample.vcf.gz
+   python scripts/extract_phenotype.py --docx data/clinical_phenotype.docx
    ```
 
 4. Run the deterministic first-pass ranking. For the challenge VCF, which has
@@ -33,7 +35,7 @@ genomic data anywhere.
 
    ```bash
    python scripts/rank_mva_panel.py \
-     --vcf data/WGS_EX2312012_HGWCNDSX7.vcf.gz \
+     --vcf data/your_sample.vcf.gz \
      --max-rows 10
    ```
 
@@ -46,7 +48,7 @@ genomic data anywhere.
      https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_47/gencode.v47.basic.annotation.gtf.gz
    gzip -dc runtime/gencode.v47.basic.annotation.gtf.gz > runtime/gencode.v47.basic.annotation.gtf
    python scripts/annotate_coding.py \
-     --vcf data/WGS_EX2312012_HGWCNDSX7.vcf.gz \
+     --vcf data/your_sample.vcf.gz \
      --gtf runtime/gencode.v47.basic.annotation.gtf \
      --out runtime/mva_coding_rank.csv \
      --max-rows 100
@@ -79,6 +81,35 @@ call in the same gene. The exact candidate CSV is kept out of this repository
 until portal submission because it is patient-derived. The methods report
 labels phase, population frequency, and functional effect as validation items,
 not established facts.
+
+## Public-facing walkthrough
+
+```mermaid
+flowchart LR
+    A[Authorized gated VCF] --> B[GRCh38 MVA panel]
+    B --> C[Local GENCODE CDS translation]
+    C --> D[Quality-aware ranking]
+    D --> E[Human review and falsifiers]
+    E --> F[Portal submission]
+```
+
+The private run reviewed 2,853 called records in the MVA panel before coding
+consequence filtering. The leading result was a BUB1B compound-allele
+hypothesis, supported by direct VCF genotype/depth/quality checks. Track 1
+then achieved a full match at rank 1. These results are reported only as a
+submission summary; the public repository contains the logic and tests, not
+the patient-derived records or candidate table.
+
+For a fresh technical smoke test after cloning:
+
+```bash
+python3 -m compileall -q src scripts autoresearch
+python3 autoresearch/run_experiment.py
+```
+
+The synthetic regression harness should report `"passed": true`. Running the
+gated-data workflow requires the participant's own authorized access and
+keeps the VCF, phenotype, and derived outputs local to that runtime.
 
 ## Privacy and retention
 
