@@ -23,6 +23,11 @@
   heterozygous stop-gain and a second heterozygous missense call, both with
   high genotype quality and adequate depth. Phase, population frequency, and
   functional effect remain validation items.
+- Submitted Track 1 as `PROBAND01`; the portal reported rank points 100/100,
+  F-max 1.000, and a full match at rank 1.
+- Published a 2:59 narrated Track 2 pitch with no copyright issues and
+  submitted Track 2 with the report, pitch URL, and public repository. The
+  portal confirmed the submission was logged for expert review.
 
 ## Current behavior
 
@@ -45,7 +50,10 @@
 - Use the BUB1B pair as the lead hypothesis for Track 1, while explicitly
   labeling phase and missense pathogenicity as unresolved.
 - Use Track 2 to explain the spindle-assembly-checkpoint mechanism and propose
-  confirmatory assays and therapeutic hypotheses, not patient treatment.
+  confirmatory assays and therapeutic hypotheses, not patient treatment. The
+  report prioritizes etoposide and irinotecan as literature-anchored Tier 1
+  tests, with sorafenib as a conditional Tier 2 follow-up and spindle-stress
+  compounds as controls.
 - Do not spend the six live submissions on autonomous tuning. Autoresearch is
   limited to fixed proxy checks, reproducibility, and parser/ranking changes.
 - Download FASTQs only if a concrete read-level question cannot be answered
@@ -64,21 +72,16 @@
 
 ## Next actions
 
-1. Freeze the private Track 1 CSV with the BUB1B pair and carefully labeled
-   secondary hypotheses, staying within the ten-row limit.
-2. Write the Track 1 methods report and Track 2 mechanism report/pitch script,
-   including evidence limits and exact rerun instructions.
-3. Run a small fixed autoresearch proxy sweep and an independent scientific
-   review; retain only changes that improve proxy behavior without weakening
-   safety checks.
-4. Publish the final data-free code revision and submit the artifacts through
-   the hackathon portal.
-5. After the deadline, delete Colab/Drive caches and follow the organizers'
+1. Preserve the submission confirmations and public repository URL for the
+   judging period; do not spend additional live submissions.
+2. Monitor the portal for any organizer requests without sharing raw data or
+   recontacting the family.
+3. After the deadline, delete Colab/Drive caches and follow the organizers'
    deletion-confirmation instructions within 30 days.
 
 ## Blockers
 
-- No access blocker remains. Submission artifacts must still be generated and
-  uploaded from the private authorized Colab/browser session.
+- No access or submission blocker remains. The remaining work is post-submission
+  stewardship and deadline-based deletion.
 - FASTQ read-level validation is optional and expensive; the decision to omit
   it must be disclosed if it remains unnecessary for the lead calls.
