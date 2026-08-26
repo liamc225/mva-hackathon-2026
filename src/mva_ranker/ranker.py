@@ -9,6 +9,7 @@ rows when those annotations are absent.
 from __future__ import annotations
 
 import csv
+import heapq
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -24,6 +25,17 @@ MVA_GENE_PRIORS: dict[str, float] = {
     "BUB1B": 5.0,
     "CEP57": 4.5,
     "TRIP13": 4.0,
+    # Additional MVA/related chromosomal-instability genes reported in recent
+    # literature. These are intentionally lower soft priors than the original
+    # three genes and never act as a hard filter.
+    "CENATAC": 3.8,
+    "MAD1L1": 3.8,
+    "MAD2L1BP": 3.5,
+    "CEP192": 3.5,
+    "SLF2": 3.5,
+    "SMC5": 3.5,
+    "BUB1": 2.5,
+    "BUB3": 2.5,
 }
 
 LOF_TERMS = {
@@ -283,15 +295,27 @@ def rank_vcf(vcf_path: str | Path, max_rows: int = 10) -> tuple[str, list[Candid
     ann_fields = _header_format(vcf, "ANN")
     csq_fields = _header_format(vcf, "CSQ")
 
-    ranked: list[Candidate] = []
+    # Keep only the best rows while streaming through the VCF. A whole-genome
+    # VCF can contain millions of records; retaining every Candidate would
+    # waste the Colab runtime's memory before ranking is complete.
+    heap: list[tuple[tuple[float, int, int], int, Candidate]] = []
+    counter = 0
     for variant in vcf:
         # Skip symbolic alleles and reference blocks for a variant-prediction
         # submission; retain SNVs/indels for the initial ranking.
         alt = str(variant.ALT[0]) if variant.ALT else ""
         if alt.startswith("<") or alt == "*":
             continue
-        ranked.append(_score(_candidate_from_variant(variant, ann_fields, csq_fields)))
+        candidate = _score(_candidate_from_variant(variant, ann_fields, csq_fields))
+        key = (candidate.score, int(bool(candidate.gene)), candidate.dp or 0)
+        item = (key, counter, candidate)
+        counter += 1
+        if len(heap) < max_rows:
+            heapq.heappush(heap, item)
+        elif key > heap[0][0]:
+            heapq.heapreplace(heap, item)
 
+    ranked = [item[2] for item in heap]
     ranked.sort(key=lambda c: (c.score, c.gene != "", c.dp or 0), reverse=True)
     return proband_id, ranked[:max_rows]
 
@@ -312,4 +336,3 @@ def write_submission(proband_id: str, candidates: list[Candidate], output: str |
             # monotone and deliberately leaves room for near-ties.
             row["epcr"] = f"{max(0.001, 1.0 - index * 0.08):.3f}"
             writer.writerow(row)
-
