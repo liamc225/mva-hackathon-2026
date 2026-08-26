@@ -1,0 +1,21 @@
+# The challenge data and all patient-derived artifacts stay outside Git.
+data/
+runtime/
+outputs/
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.fastq
+*.fastq.gz
+*.bam
+*.cram
+*.docx
+*.xlsx
+*.pdf
+.env
+.env.*
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+
