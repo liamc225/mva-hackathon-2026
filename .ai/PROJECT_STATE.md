@@ -8,6 +8,9 @@
   harness for cautious autoresearch-style iteration.
 - Confirmed via public dataset metadata that the VCF is about 315 MB, the
   phenotype document is small, and the FASTQs account for roughly 85 GB.
+- Published the public scaffold at
+  `https://github.com/liamc225/mva-hackathon-2026` on branch
+  `codex/mva-hackathon-2026`.
 
 ## Current behavior
 
@@ -29,7 +32,8 @@
 
 ## Tests
 
-- Local proxy harness still needs to be run after the initial scaffold commit.
+- Python syntax checks pass for all scripts and the ranker.
+- The local proxy harness still needs its runtime dependency installation.
 - Real VCF parsing and ranking are pending gated dataset access.
 
 ## Next actions
@@ -43,7 +47,8 @@
 ## Blockers
 
 - Dataset access requires the participant's institution, city/country, intended
-  use date, and explicit acceptance of the hackathon rules.
+  use date, and explicit acceptance of the hackathon rules. This is waiting on
+  Liam's exact details and confirmation; no personal data or legal acceptance
+  has been entered by Codex.
 - Track 2 cannot be responsibly drafted until the actual causal variant and
   mechanism evidence are identified.
-
